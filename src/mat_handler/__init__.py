@@ -61,18 +61,21 @@ def mat_to_df(mat):
     batt.set_index("cycle", inplace=True)
     cycles = []
     for i, d in enumerate(mat):
+        cycle_num = i
         cycle_type = d["type"]
-        batt.loc[i + 1] = [d["type"], d["temp"], d["time"], *[np.nan] * 5]
-        data = d["data"]
+        row, data = [d["type"], d["temp"], d["time"], *[np.nan] * 5], d["data"]
         match cycle_type:
             case "discharge":
-                batt = insert_discharge_meta(batt, i + 1, d["data"]["Capacity"])
+                row[3] = data["Capacity"][0] if len(data["Capacity"]) == 1 else np.nan
+                if len(data["Capacity"]) > 1:
+                    print(f"Warning: {cycle_num} has multiple capacity values")
                 del data["Capacity"]
             case "impedance":
                 data, other = split_dict_by_keys(
                     data, ["Sense_current", "Battery_current", "Current_ratio"]
                 )
-                batt = insert_impedance_meta(batt, i + 1, other)
+                row[4:] = list(other.values())
+        batt.loc[cycle_num] = row
         df = pd.DataFrame.from_dict(data)
         if cycle_type != "impedance":
             df.set_index("Time", inplace=True)
@@ -82,20 +85,3 @@ def mat_to_df(mat):
 
 def split_dict_by_keys(d, keys):
     return {k: d[k] for k in keys}, {k: d[k] for k in d if k not in keys}
-
-
-def len_check(arr):
-    return all([len(v) == 1 for v in arr.values()])
-
-
-def insert_impedance_meta(batt, i, data):
-    batt[i, "Battery_impedance"] = data["Battery_impedance"]
-    batt[i, "Rectified_Impedance"] = data["Rectified_Impedance"]
-    batt[i, "Re"] = data["Re"]
-    batt[i, "Rct"] = data["Rct"]
-    return batt
-
-
-def insert_discharge_meta(batt, i, c):
-    batt[i, "Capacity"] = c if len(c) == 1 else np.nan
-    return batt
