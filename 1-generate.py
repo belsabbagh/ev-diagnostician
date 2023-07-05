@@ -23,12 +23,11 @@ if __name__ == "__main__":
                 makedirs(battery_folder)
             for i, cycle in enumerate(cycles):
                 cycle_type = index.iloc[i]["type"]
-                cycle.to_csv(path.join(battery_folder, f"{i}_{cycle_type}.csv"))
+                padded = str(i).zfill(3)
+                cycle.to_csv(path.join(battery_folder, f"{padded}_{cycle_type}.csv"))
                 filecount += 1
             index.to_csv(path.join(battery_folder, f"index.csv"))
             print(f"Generated {batt_name} in {folder}")
         except Exception as e:
             raise RuntimeError(f"Error while generating {batt_name} in {folder}.\n{e}")
-    print(
-        f"Generated dataset in {default_timer() - start} seconds.\n{filecount} files generated"
-    )
+    print(f"Generated {filecount} files in {default_timer() - start} seconds.")
