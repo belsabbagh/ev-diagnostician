@@ -29,12 +29,13 @@ def loadMat(filepath):
     for i in range(size):
         k = list(col[i][3][0].dtype.fields.keys())
         d1, d2 = {}, {}
+        cycle_type = str(col[i][0][0])
         for j in range(len(k)):
             t = col[i][3][0][0][j][0]
             l = [t[m] for m in range(len(t))]
             d2[k[j]] = l
         d1["type"], d1["temp"], d1["time"], d1["data"] = (
-            str(col[i][0][0]),
+            cycle_type,
             int(col[i][1][0]),
             str(convert_to_time(col[i][2][0])),
             d2,

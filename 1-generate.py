@@ -18,7 +18,7 @@ if __name__ == "__main__":
         mat = mt.loadMat(filepath)
         try:
             index, cycles = mt.mat_to_df(mat)
-            battery_folder = path.join(paths.GENERATED_PATH, folder, batt_name)
+            battery_folder = path.join(paths.GENERATED_PATH, batt_name)
             if not path.exists(battery_folder):
                 makedirs(battery_folder)
             for i, cycle in enumerate(cycles):
@@ -27,7 +27,7 @@ if __name__ == "__main__":
                 cycle.to_csv(path.join(battery_folder, f"{padded}_{cycle_type}.csv"))
                 filecount += 1
             index.to_csv(path.join(battery_folder, f"index.csv"))
-            print(f"Generated {batt_name} in {folder}")
+            print(f"Generated {batt_name} from {folder}")
         except Exception as e:
             raise RuntimeError(f"Error while generating {batt_name} in {folder}.\n{e}")
     print(f"Generated {filecount} files in {default_timer() - start} seconds.")

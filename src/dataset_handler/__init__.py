@@ -24,15 +24,13 @@ def battery_cycles_iter(battery_path):
 
 
 def dataset_path_iter():
-    for folder, battery in battery_path_iter():
-        for cycle in battery_cycles_iter(
-            path.join(paths.GENERATED_PATH, folder, battery)
-        ):
-            yield folder, battery, cycle
+    for battery in battery_path_iter():
+        for cycle in battery_cycles_iter(path.join(paths.GENERATED_PATH, battery)):
+            yield battery, cycle
 
 
-def get_battery(folder, battery):
-    batt_dir = path.join(paths.GENERATED_PATH, folder, battery)
+def get_battery(battery):
+    batt_dir = path.join(paths.GENERATED_PATH, battery)
     cycles = [
         (cycle.split(".")[0], get_battery_cycle(batt_dir, cycle))
         for cycle in battery_cycles_iter(batt_dir)
@@ -49,12 +47,12 @@ def get_battery_cycle(batt_dir, cycle):
 
 
 def battery_path_iter(root=paths.GENERATED_PATH):
-    for folder in listdir(root):
-        for battery in listdir(path.join(root, folder)):
-            yield folder, battery
+    """Returns a generator of battery directory names from the generated data"""
+    for battery in listdir(root):
+        yield battery
 
 
 def battery_iter(root=paths.GENERATED_PATH):
-    for folder, battery in battery_path_iter(root):
-        battery_name = battery.split(".")[0]
-        yield battery_name, get_battery(folder, battery)
+    """Returns a generator of tuples (battery_name, (index, cycles))"""
+    for battery in battery_path_iter(root):
+        yield battery.split(".")[0], get_battery(battery)
