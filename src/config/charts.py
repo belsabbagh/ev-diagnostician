@@ -20,3 +20,18 @@ CYCLE_CHARGE_CURVE = {
     "ylabel": "Current (A)",
     "legend": ["Current"],
 }
+
+BATTERY_IMPEDANCE_CURVE = {
+    "title": "Impedance Curve",
+    "y": ["Rectified_Impedance", "Re", "Rct"],
+    "xlabel": "Cycle",
+    "ylabel": "Impedance (Ohm)",
+    "legend": ["Rectified_Impedance", "Re", "Rct"],
+}
+
+BATTERY_IMPEDANCE_CURVE_WITH_CAPACITY = {
+    "title": "Impedance Curve",
+    "y": ["Rectified_Impedance", "Capacity"],
+    "xlabel": "Cycle",
+    "legend": ["Rectified_Impedance", "Capacity"],
+}

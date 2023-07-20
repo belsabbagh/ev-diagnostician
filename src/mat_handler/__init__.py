@@ -75,7 +75,7 @@ def mat_to_df(mat):
                 data, other = split_dict_by_keys(
                     data, ["Sense_current", "Battery_current", "Current_ratio"]
                 )
-                row[4:] = list(other.values())
+                row[4:] = [i[0] for i in list(other.values())]
         batt.loc[cycle_num] = row
         df = pd.DataFrame.from_dict(data)
         if cycle_type != "impedance":

@@ -1,61 +1,39 @@
-import numpy as np
+from os import path
 import pandas as pd
 from src.config import paths
 from src import dataset_handler as dh
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
+from src import model
+
+BATTERIES = ["B0005", "B0006", "B0007"]
 
 
-def build_model():
-    nn_model: Sequential = Sequential(
-        [
-            Dense(100, kernel_initializer="uniform", activation="tanh", input_dim=1),
-            Dense(1, kernel_initializer="uniform", activation="linear"),
-        ]
-    )
-
-    nn_model.compile(
-        optimizer="sgd",
-        loss="mean_squared_error",
-        metrics=["mean_absolute_error", "mean_squared_error"],
-    )
-    return nn_model
+def smoothen(values, window=10):
+    return values.rolling(window=window).mean()
 
 
-def validate_data(df):
-    nan_values = df.isna().any(axis=1)
-    if nan_values.any():
-        raise ValueError(f"NaN values found in {df[nan_values]}")
-    return True
-
-
-def collect_discharge_data():
-    data_dict = {
-        "Cycle": [],
-        "Capacity": [],
-        "Battery": [],
-    }
-    for battery_name, data in dh.battery_iter():
-        batt_index, _ = data
-        batt_index = batt_index.loc[batt_index["type"] == "discharge"]
-        data_dict["Cycle"].extend(batt_index.index.values)
-        data_dict["Capacity"].extend(batt_index["Capacity"].values)
-        data_dict["Battery"].extend([battery_name] * len(batt_index))
-    discharge_data = pd.DataFrame.from_dict(data_dict)
-    discharge_data.sort_values(by=["Cycle", "Battery"], inplace=True)
-    discharge_data.reset_index(inplace=True, drop=True)
-    # validate_data(discharge_data)
-    discharge_data.dropna(inplace=True)
-    return pd.DataFrame.from_dict(discharge_data)
-
-
-def split_data(df):
-    return df.iloc[:, 0:1], df.iloc[:, 1]
+def train_model(model, X, y, save_path, **kwargs):
+    model.fit(X.values, y.values, **kwargs)
+    model.save(save_path)
+    print(f"Saved model to {save_path}")
+    return model
 
 
 if __name__ == "__main__":
-    df = collect_discharge_data()
-    X, y = split_data(df)
-    nn_model = build_model()
-    nn_model.fit(X.values, y.values, epochs=100)
-    nn_model.save(paths.MODELS_SAVE_PATH)
+    df = pd.read_csv(path.join(paths.PREPROCESSED_PATH, "B0005.csv"))
+    X, y = df[["Rectified_Impedance"]], df["Capacity"]
+    model = model.build_model1()
+    model_path = path.join(paths.MODELS_SAVE_PATH, "model1")
+    model = train_model(model, X, y, model_path, epochs=100)
+    exit(0)
+    df = pd.read_csv(path.join(paths.PREPROCESSED_PATH, "impedance.csv"))
+    df = df[df["Battery"].isin(BATTERIES)]
+    X, y = df[["Rectified_Impedance"]], df["Capacity"]
+    model1 = model.build_model1()
+    model1_path = path.join(paths.MODELS_SAVE_PATH, "model2")
+    train_model(model1, X, y, model1_path, epochs=100)
+    df = pd.read_csv(path.join(paths.PREPROCESSED_PATH, "discharge.csv"))
+    df = df[df["Battery"].isin(BATTERIES)]
+    X, y = dh.cycle_to_capacity(df)
+    model2 = model.build_model2()
+    model2_path = path.join(paths.MODELS_SAVE_PATH, "model2")
+    train_model(model2, X, y, model2_path, epochs=100)
