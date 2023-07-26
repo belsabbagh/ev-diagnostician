@@ -124,9 +124,9 @@ def fill_capacity(capacities):
 def sync_data(index):
     capacities = []
     discharge = False
+    value = index["Capacity"].dropna(inplace=False).iloc[0]
     for cycle in index.index.values:
         cycle_type = index.loc[cycle, "type"]
-        value = index["Capacity"].dropna(inplace=False).iloc[0]
         if cycle_type == "discharge":
             discharge = True
             capacities.append(index.loc[cycle, "Capacity"])
@@ -137,3 +137,57 @@ def sync_data(index):
                 discharge = False
             index.loc[cycle, "Capacity"] = value
     return index
+
+
+def sync_impedance_to_discharge(index):
+    impedances = {
+        "Re": [],
+        "Rct": [],
+        "Rectified_Impedance": [],
+    }
+    impedance = False
+    values = {
+        key: index[key].dropna(inplace=False).iloc[0] for key in impedances.keys()
+    }
+    for cycle in index.index.values:
+        cycle_type = index.loc[cycle, "type"]
+        if cycle_type == "impedance":
+            impedance = True
+            for key in impedances.keys():
+                impedances[key].append(index.loc[cycle, key])
+        elif cycle_type == "discharge":
+            if impedance:
+                for key in impedances.keys():
+                    values[key] = np.mean(impedances[key])
+                    impedances[key].clear()
+                impedance = False
+            for key in impedances.keys():
+                index.loc[cycle, key] = values[key]
+    return index
+
+
+def normalize(df):
+    max_capacity = df["Capacity"].max()
+    ref_impedance = df.loc[df["Capacity"].idxmax(), "Rectified_Impedance"]
+    ref_re = df.loc[df["Capacity"].idxmax(), "Re"]
+    ref_rct = df.loc[df["Capacity"].idxmax(), "Rct"]
+    df["Capacity"] = df["Capacity"].apply(lambda x: x / max_capacity)
+    df["Rectified_Impedance"] = df["Rectified_Impedance"].apply(
+        lambda x: x / ref_impedance
+    )
+    df["Re"] = df["Re"].apply(lambda x: x / ref_re)
+    df["Rct"] = df["Rct"].apply(lambda x: x / ref_rct)
+    return df
+
+
+def prepare(df):
+    df = normalize(df)
+    return df[["Rectified_Impedance"]], df["Capacity"]
+
+
+def add_cycle_number(index):
+    cycle_number = 1
+    for i, row in index.iterrows():
+        if row["type"] == "discharge":
+            index.loc[i, "cycle_no"] = cycle_number
+            cycle_number += 1

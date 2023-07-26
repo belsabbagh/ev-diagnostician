@@ -1,15 +1,21 @@
-import pandas as pd
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras import layers
+import tensorflow as tf
+
+Sequential = tf.keras.models.Sequential
+load_model = tf.keras.models.load_model
+layers = tf.keras.layers
+
+DENSE_PROPS = {
+    "kernel_initializer": "uniform",
+    "activation": "linear",
+}
 
 
 def build_model1() -> Sequential:
     nn_model: Sequential = Sequential(
         [
-            layers.Dense(
-                2, kernel_initializer="uniform", activation="linear", input_dim=1
-            ),
-            layers.Dense(1, kernel_initializer="uniform", activation="linear"),
+            layers.InputLayer(input_shape=(2,)),
+            layers.Dense(4, **DENSE_PROPS),
+            layers.Dense(1, **DENSE_PROPS),
         ]
     )
 
@@ -24,15 +30,14 @@ def build_model1() -> Sequential:
 def build_model2() -> Sequential:
     nn_model: Sequential = Sequential(
         [
-            layers.Dense(
-                100, kernel_initializer="uniform", activation="tanh", input_dim=1
-            ),
-            layers.Dense(1, kernel_initializer="uniform", activation="linear"),
+            layers.InputLayer(input_shape=(1,)),
+            layers.Dense(4, activation="linear", kernel_initializer="uniform"),
+            layers.Dense(1, activation="linear", kernel_initializer="uniform"),
         ]
     )
 
     nn_model.compile(
-        optimizer="sgd",
+        optimizer="adam",
         loss="mean_squared_error",
         metrics=["mean_absolute_error", "mean_squared_error"],
     )
@@ -41,9 +46,3 @@ def build_model2() -> Sequential:
 
 def load_keras_model(model_path: str) -> Sequential:
     return load_model(model_path)
-
-
-def predict(models, X):
-    pred_cycle = models[0].predict(X)  # [models[0].predict(i)[0][0] for i in X.values]
-    pred_cycle = pd.DataFrame.from_dict({"Cycle": pred_cycle})
-    return [models[1].predict(i)[0][0] for i in pred_cycle.values]

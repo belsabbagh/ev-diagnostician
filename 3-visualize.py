@@ -2,13 +2,15 @@ import sys
 from os import path, makedirs
 from timeit import default_timer
 from matplotlib import pyplot as plt
-from src import dataset_handler as dh
-from src.config import charts
+import pandas as pd
+from src.config import charts, paths
+
+BATTERIES = ["B0005", "B0006", "B0007", "B0018"]
 
 
 def plot_capacity_degradation(index):
     # plot capacity over cycle
-    index = index.loc[index["type"] == "discharge", ["Capacity"]]
+    index = index[["Capacity"]]
     return index.plot(**charts.BATTERY_DISCHARGE_DEGRADATION)
 
 
@@ -55,46 +57,23 @@ def save_plot(filename, save_dir="out"):
     plt.close()
 
 
-
-
 if __name__ == "__main__":
     plot_all = False
     if len(sys.argv) > 1:
         if sys.argv[1] == "-all":
             plot_all = True
-    # remove outliers using z-score
-    discharge_df = dh.filter_outliers(dh.collect_discharge_data(), "Capacity")
-    impedance_df = dh.filter_outliers(dh.collect_impedance_data(), "Rectified_Impedance")
-    plt.scatter(
-        *zip(
-            *[(x, y) for x, y in zip(discharge_df["Cycle"], discharge_df["Capacity"])]
-        ),
-        s=1,
-        c="blue",
-    )
-    plt.scatter(
-        *zip(
-            *[
-                (x, y)
-                for x, y in zip(
-                    impedance_df["Cycle"], impedance_df["Rectified_Impedance"]
-                )
-            ]
-        ),
-        s=1,
-        c="red",
-    )
-    plt.show()
     print("Will finally start plotting")
     start = default_timer()
-    for battery_name, data in dh.battery_iter():
-        index, cycles = data
-        plot_capacity_degradation(index)
-        save_plot(f"{battery_name}.png", save_dir="out/batteries")
-        plot_impedance(index)
-        save_plot(f"{battery_name}.png", save_dir="out/impedance")
+    for battery_name in BATTERIES:
+        df = pd.read_csv(
+            path.join(paths.PREPROCESSED_PATH, f"{battery_name}.csv"), index_col=0
+        )
+        plot_capacity_degradation(df)
+        save_plot(f"{battery_name}.png", save_dir="out/preprocessed_batteries")
+        # plot_impedance(index)
+        # save_plot(f"{battery_name}.png", save_dir="out/impedance")
         if plot_all:
-            for name, df in cycles:
+            for name, df in []:
                 cycle_type = name.split("_")[1]
                 if cycle_type == "impedance":
                     continue
