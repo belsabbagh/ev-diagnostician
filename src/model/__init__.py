@@ -10,12 +10,19 @@ DENSE_PROPS = {
 }
 
 
+def linear_layers():
+    return [
+        layers.Dense(4, **DENSE_PROPS),
+        layers.Dense(2, **DENSE_PROPS),
+        layers.Dense(1, **DENSE_PROPS),
+    ]
+
+
 def build_model1() -> Sequential:
     nn_model: Sequential = Sequential(
         [
             layers.InputLayer(input_shape=(2,)),
-            layers.Dense(4, **DENSE_PROPS),
-            layers.Dense(1, **DENSE_PROPS),
+            *linear_layers(),
         ]
     )
 
@@ -31,8 +38,7 @@ def build_model2() -> Sequential:
     nn_model: Sequential = Sequential(
         [
             layers.InputLayer(input_shape=(1,)),
-            layers.Dense(4, activation="linear", kernel_initializer="uniform"),
-            layers.Dense(1, activation="linear", kernel_initializer="uniform"),
+            *linear_layers(),
         ]
     )
 

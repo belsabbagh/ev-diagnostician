@@ -2,6 +2,10 @@ from os import path
 import pandas as pd
 from src.config import paths
 from src import model as mymodel
+from keras.utils import plot_model
+import os
+
+os.environ["PATH"] += os.pathsep + "C:/Program Files (x86)/Graphviz2.38/bin/"
 
 
 def train_model1(model, X, y, save_path, **kwargs):
@@ -15,7 +19,8 @@ def train_model2(model, X, y, save_path, **kwargs):
     model.fit(X.values, y["Cycle_number"].values, **kwargs)
     for layer in model.layers:
         layer.trainable = False
-    model.add(mymodel.build_model2())
+    for layer in mymodel.linear_layers():
+        model.add(layer)
     model.compile(
         optimizer="adam",
         loss="mean_squared_error",
@@ -35,9 +40,11 @@ if __name__ == "__main__":
         X1 = df[[col, "Cycle_number"]]
         X2 = df[[col]]
         model1 = mymodel.build_model1()
+        plot_model(
+            model1, to_file=f"out/modelviz/model1_{col}.png", show_shapes=True, show_layer_names=True, show_layer_activations=True
+        )
         model1_path = path.join(paths.MODELS_SAVE_PATH, f"model1_{col}")
         model1 = train_model1(model1, X1, y1, model1_path, epochs=100)
         model2 = mymodel.build_model2()
         model2_path = path.join(paths.MODELS_SAVE_PATH, f"model2_{col}")
         model2 = train_model2(model2, X2, y2, model2_path, epochs=100)
-        print(model2.summary())

@@ -5,31 +5,23 @@ from matplotlib import pyplot as plt
 import pandas as pd
 from src.config import charts, paths
 
-BATTERIES = ["B0005", "B0006", "B0007", "B0018"]
+BATTERIES = ["B0005", "B0006", "B0007", "B0018", "B0026"]
 
 
 def plot_capacity_degradation(index):
     # plot capacity over cycle
-    index = index[["Capacity"]]
+    index = index[["Capacity", "Rectified_Impedance", "Re", "Rct"]]
     return index.plot(**charts.BATTERY_DISCHARGE_DEGRADATION)
 
 
-def plot_impedance(index):
-    df = index.loc[
-        index["type"] == "impedance",
-        ["Rectified_Impedance", "Re", "Rct"],
-    ].copy()
+def plot_impedance(df):
     df["Rectified_Impedance"] = df["Rectified_Impedance"].apply(
         lambda x: complex(x).real
     )
     return df.plot(**charts.BATTERY_IMPEDANCE_CURVE)
 
 
-def plot_impedance_with_capacity(index):
-    df = index.loc[
-        index["type"] == "impedance",
-        ["Rectified_Impedance"],
-    ].copy()
+def plot_impedance_with_capacity(df):
     df["Rectified_Impedance"] = df["Rectified_Impedance"].apply(
         lambda x: complex(x).real
     )
@@ -70,8 +62,8 @@ if __name__ == "__main__":
         )
         plot_capacity_degradation(df)
         save_plot(f"{battery_name}.png", save_dir="out/preprocessed_batteries")
-        # plot_impedance(index)
-        # save_plot(f"{battery_name}.png", save_dir="out/impedance")
+        plot_impedance(df)
+        save_plot(f"{battery_name}.png", save_dir="out/impedance")
         if plot_all:
             for name, df in []:
                 cycle_type = name.split("_")[1]

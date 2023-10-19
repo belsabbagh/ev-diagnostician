@@ -1,8 +1,8 @@
 BATTERY_DISCHARGE_DEGRADATION = {
     "title": "Discharge Degradation",
     "xlabel": "Cycle",
-    "ylabel": "Capacity (Ah)",
-    "legend": ["Capacity"],
+    "ylabel": "Ratio to initial value",
+    "legend": ["Capacity", "Rectified_Impedance", "Re", "Rct"],
 }
 
 CYCLE_DISCHARGE_CURVE = {
@@ -23,6 +23,7 @@ CYCLE_CHARGE_CURVE = {
 
 BATTERY_IMPEDANCE_CURVE = {
     "title": "Impedance Curve",
+    "x": "Cycle_number",
     "y": ["Rectified_Impedance", "Re", "Rct"],
     "xlabel": "Cycle",
     "ylabel": "Impedance (Ohm)",

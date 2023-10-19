@@ -4,7 +4,7 @@ from src.config import paths
 from src.model import load_keras_model
 from src import dataset_handler as dh
 
-BATTERIES = ["B0005", "B0018"]
+BATTERIES = ["B0005", "B0018", "B0026"]
 
 
 def score(model, X, y):

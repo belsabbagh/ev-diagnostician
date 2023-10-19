@@ -2,7 +2,7 @@ from os import path, makedirs
 from timeit import default_timer
 from src import mat_handler as mt, dataset_handler as dh
 from src.config import paths
-
+import json
 
 if __name__ == "__main__":
     if not dh.dataset_exists():
